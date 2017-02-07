@@ -80,7 +80,7 @@ public final class Calculator extends CDialog
 	public Calculator(Frame frame, String title, int displayType,
 		DecimalFormat format, BigDecimal number)
 	{
-		super(frame, title, true);
+		super(frame, title, false);
 		setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		//  Get WindowNo for Currency
 		m_WindowNo = Env.getWindowNo(frame);
@@ -136,7 +136,7 @@ public final class Calculator extends CDialog
 	private boolean			m_currencyOK = false;
 	private boolean			p_disposeOnEqual = true;	//teo_sarca, bug[ 1628773 ] 
 
-	private final static String OPERANDS = "/*-+%";
+	private final static String OPERANDS = "/*-+%()";
 	private char			m_decimal = '.';
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(Calculator.class);
@@ -365,7 +365,8 @@ public final class Calculator extends CDialog
 			//	Commands	===============================
 			case '/':		case '*':
 			case '-':       case '+':
-			case '%':
+			case '%':		case '(':
+			case ')':
 				if (m_display.length() > 0)
 				{
 					char last = m_display.charAt(m_display.length()-1);
@@ -374,9 +375,11 @@ public final class Calculator extends CDialog
 					else
 						m_display = m_display.substring(0, m_display.length()-1) + c;
 				}
+				/*
 				m_display = m_format.format(evaluate());
 				if (c != '%')
 					m_display += c;
+				*/
 				break;
 
 			//	Clear last char
@@ -398,7 +401,8 @@ public final class Calculator extends CDialog
 
 			//	fini
 			case '=':
-				m_display = m_format.format(evaluate());
+				//m_display = m_format.format(evaluate());
+				evaluateAll();
 				m_abort = false;
 				if (isDisposeOnEqual()) //teo_sarca, bug [ 1628773 ] 
 					dispose();
@@ -545,6 +549,39 @@ public final class Calculator extends CDialog
 		return m_number.setScale(m_format.getMaximumFractionDigits(), BigDecimal.ROUND_HALF_UP);
 	}	//	evaluate
 
+	/**
+	 *	Evaluate.
+	 *	- evaluate info in display and set number
+	 * 	@return result
+	 */
+	//cyberjar
+	private void evaluateAll() {		
+		 while(isThereOperand() != 0) {
+			 String belakang = m_display.substring(isThereOperand(), m_display.length());				
+			 m_display = m_format.format(evaluate());
+			 m_display += belakang;
+		 }
+		 m_display = m_format.format(evaluate());
+	}
+	
+	private int isThereOperand() {
+		int count = 0;
+		for (int i=0; i<m_display.length(); i++) {
+			if(m_display.charAt(i) == '+' || m_display.charAt(i) == '-'
+			|| m_display.charAt(i) == '*' || m_display.charAt(i) == '/'
+			|| m_display.charAt(i) == '%') {
+				count++;
+				if(count==2) {
+					return i;
+				}
+			}
+		}
+		if(count == 1) {
+			return 0;
+		} else {
+			return -1;
+		}
+	}
 
 	/**
 	 *	Display or don't display Currency

@@ -73,7 +73,7 @@ public class HTMLEditor extends CDialog
 	 */
 	public HTMLEditor (Frame owner, String title, String htmlText, boolean editable)
 	{
-		super (owner, title == null ? Msg.getMsg(Env.getCtx(), "Editor") : title, true);
+		super (owner, title == null ? Msg.getMsg(Env.getCtx(), "Editor") : title, false);
 		init(owner, htmlText, editable);
 	}	//	HTMLEditor
 
@@ -85,7 +85,7 @@ public class HTMLEditor extends CDialog
 	 */
 	public HTMLEditor (Dialog owner, String title, String htmlText, boolean editable)
 	{
-		super (owner, title == null ? Msg.getMsg(Env.getCtx(), "Editor") : title, true);
+		super (owner, title == null ? Msg.getMsg(Env.getCtx(), "Editor") : title, false);
 		init(owner, htmlText, editable);
 	}	//	HTMLEditor
 

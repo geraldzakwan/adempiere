@@ -112,7 +112,8 @@ public class Editor extends CDialog
 	 */
 	public Editor(Frame frame, String header, String text, boolean editable, int maxSize)
 	{
-		super (frame, header, frame != null);
+		//super (frame, header, frame != null);
+		super (frame, header, false);
 		try
 		{
 			m_maxSize = maxSize;

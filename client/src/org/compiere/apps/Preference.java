@@ -102,7 +102,7 @@ public final class Preference extends CDialog
 	 */
 	public Preference(Frame frame, int WindowNo)
 	{
-		super(frame, Msg.getMsg(Env.getCtx(), "Preference"), true);
+		super(frame, Msg.getMsg(Env.getCtx(), "Preference"), false);
 		log.config("Preference");
 		try
 		{
