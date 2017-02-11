@@ -136,7 +136,7 @@ public final class Calculator extends CDialog
 	private boolean			m_currencyOK = false;
 	private boolean			p_disposeOnEqual = true;	//teo_sarca, bug[ 1628773 ] 
 
-	private final static String OPERANDS = "/*-+%()";
+	private final static String OPERANDS = "/*-+%";
 	private char			m_decimal = '.';
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(Calculator.class);
@@ -352,7 +352,7 @@ public final class Calculator extends CDialog
 			case '0':		case '1':		case '2':
 			case '3':		case '4':		case '5':
 			case '6':		case '7':		case '8':
-			case '9':
+			case '9':		case '(':
 				m_display += c;
 				break;
 
@@ -365,15 +365,22 @@ public final class Calculator extends CDialog
 			//	Commands	===============================
 			case '/':		case '*':
 			case '-':       case '+':
-			case '%':		case '(':
-			case ')':
+			case '%':		case ')':
 				if (m_display.length() > 0)
 				{
 					char last = m_display.charAt(m_display.length()-1);
-					if (OPERANDS.indexOf(last) == -1)
-						m_display += c;
-					else
-						m_display = m_display.substring(0, m_display.length()-1) + c;
+					try {
+						if (last == '(') {
+							m_display = m_display.substring(0, m_display.length()-2) + c;
+						} else {
+							if (OPERANDS.indexOf(last) == -1)
+								m_display += c;
+							else
+								m_display = m_display.substring(0, m_display.length()-1) + c;
+						}
+					} catch (Exception e) {
+						m_display = "ERROR: " + e.getMessage();
+					}
 				}
 				/*
 				m_display = m_format.format(evaluate());
@@ -381,7 +388,6 @@ public final class Calculator extends CDialog
 					m_display += c;
 				*/
 				break;
-
 			//	Clear last char
 			case 'C':
 				if (m_display.length() > 0)
@@ -555,13 +561,36 @@ public final class Calculator extends CDialog
 	 * 	@return result
 	 */
 	//cyberjar
-	private void evaluateAll() {		
-		 while(isThereOperand() != 0) {
-			 String belakang = m_display.substring(isThereOperand(), m_display.length());				
-			 m_display = m_format.format(evaluate());
-			 m_display += belakang;
-		 }
-		 m_display = m_format.format(evaluate());
+	private void evaluateAll() {
+		try {
+			//System.out.println("EVAL: " + m_display);
+			while (m_display.indexOf('(') != -1) {
+				processFirstBracket();
+				//System.out.println("After Replace: " + m_display);
+			}
+			if (isThereOperand() != -1) {
+				while(isThereOperand() != 0) {
+					/*if (isThereOperand() + 1 < m_display.length() ) {
+						if (m_display.charAt(isThereOperand() + 1) == '(') {
+							//replaceBracket();
+							System.out.println("After Replace: " + m_display);
+						}
+					} else {*/
+						String belakang = m_display.substring(isThereOperand(), m_display.length());
+						m_display = m_format.format(evaluate());
+						if (belakang.charAt(0) == ')') {
+							belakang = belakang.substring(1, belakang.length());
+						}
+						m_display += belakang;
+					//}
+				}
+				m_display = m_format.format(evaluate());
+			}
+		} catch (Exception e) {
+			m_display = "MATH ERROR";
+			System.out.println(e.getMessage());
+			System.out.println(e.getCause());
+		}
 	}
 	
 	private int isThereOperand() {
@@ -569,7 +598,7 @@ public final class Calculator extends CDialog
 		for (int i=0; i<m_display.length(); i++) {
 			if(m_display.charAt(i) == '+' || m_display.charAt(i) == '-'
 			|| m_display.charAt(i) == '*' || m_display.charAt(i) == '/'
-			|| m_display.charAt(i) == '%') {
+			|| m_display.charAt(i) == '%' || m_display.charAt(i) == ')') {
 				count++;
 				if(count==2) {
 					return i;
@@ -582,7 +611,122 @@ public final class Calculator extends CDialog
 			return -1;
 		}
 	}
+	
+	
+	
+	//BlackWidow
+	private String processFirstBracket() throws Exception {
+		if (m_display.indexOf('(') != -1) {
+			String depan, belakang, newValue;
+			int openBracketPos = m_display.indexOf('('); 
+			depan = m_display.substring(0,openBracketPos);
+			m_display = m_display.substring(openBracketPos + 1, m_display.length());
+			int closeBracketPos = searchClosingBracketPos();
+			if (closeBracketPos == m_display.length() - 1) {
+				belakang = "";
+				//System.out.println("Back " + belakang);
+			} else {
+				belakang = m_display.substring(closeBracketPos+1, m_display.length());
+				//System.out.println("Front " + belakang);
+			}
+			m_display = m_display.substring(0, closeBracketPos);
+			//System.out.println("Process Further: " + m_display);
+			newValue = processFirstBracket();
+			m_display = depan + newValue + belakang;
+			evaluateAll();
+			return m_display;
+		} else {
+			evaluateAll();
+			return m_display;
+		}
+	}
 
+	/*private int isThereOperand(String s) {
+		int count = 0;
+		for (int i=0; i<s.length(); i++) {
+			if(s.charAt(i) == '+' || s.charAt(i) == '-'
+			|| s.charAt(i) == '*' || s.charAt(i) == '/'
+			|| s.charAt(i) == '%' || s.charAt(i) == ')') {
+				count++;
+				if(count==2) {
+					return i;
+				}
+			}
+		}
+		if(count == 1) {
+			return 0;
+		} else {
+			return -1;
+		}
+	}
+	private void replaceSubstr(String s, String substr, int start, int end) {
+		//try {
+			StringBuffer buf = new StringBuffer(s);
+			System.out.println("Start: " + start + " | End: " + end);
+			buf.replace(start, end, substr);
+			s = buf.toString();
+			System.out.println("Hasil replace: " + s);
+	}*/
+	private int searchClosingBracketPos() {
+		int cnt = 0;
+		for (int i = 0; i < m_display.length(); ++i) {
+			if (m_display.charAt(i) == ')') {
+				cnt--;
+			}
+			if (m_display.charAt(i) == '(') {
+				cnt++;
+			}
+			//System.out.println("i: " + i + " | cnt: " + cnt + " | " + " c: " + m_display.charAt(i));
+			if (cnt < 0) {
+				//System.out.println("Closing Bracket: " + i);
+				return i;
+			}
+		}
+		//System.out.println("No CLosing Bracket, returning -1");
+		return -1;
+	}
+	/*
+	private String evaluateBracket(String s) {
+		//try {
+			System.out.println("EVALUATING BRACKET: " + s);
+			if (isThereOperand(s) != -1) {
+				while(isThereOperand(s) != 0) {
+					if (isThereOperand(s) + 1 < s.length() ) {
+						if (s.charAt(isThereOperand(s) + 1) == '(') {
+							replaceBracket();
+						}
+					} else {
+						String belakang = s.substring(isThereOperand(s), s.length());
+						System.out.println("Before Calculate " + s);
+						m_display = m_format.format(evaluate());
+						System.out.println("After Calculate " + m_display);
+						if (belakang.charAt(0) == ')') {
+							return m_display;
+						} else {
+							m_display += belakang;
+						}
+					}
+				}
+				m_display = m_format.format(evaluate());
+				if (m_display.charAt(m_display.length() - 1) == ')') {
+					return m_display;
+				} else {
+					return "ERROR: no closing bracket | " + m_display.charAt(m_display.length() - 1);
+				}
+			}
+			return "ERROR: no closing bracket, operand = -1";
+	}
+	private void replaceBracket() {
+		//try {
+			int openBracketPos = m_display.indexOf('(');
+			String substr = m_display.substring(openBracketPos+1, m_display.length());
+			System.out.println("REPLACING: " + substr);
+			String newValue = evaluateBracket(substr);
+			System.out.println("NEW VALUE: " + newValue);
+			int closingBracketPos = searchClosingBracketPos(m_display, openBracketPos);
+			replaceSubstr(m_display, newValue, openBracketPos, closingBracketPos);
+			System.out.println("NEW STRING: " + m_display);
+	}*/
 	/**
 	 *	Display or don't display Currency
 	 */
