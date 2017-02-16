@@ -137,6 +137,7 @@ public final class Calculator extends CDialog
 	private boolean			p_disposeOnEqual = true;	//teo_sarca, bug[ 1628773 ] 
 
 	private final static String OPERANDS = "/*-+%";
+	private final static String prioritizedOperands = "/*";
 	private char			m_decimal = '.';
 	/**	Logger			*/
 	private static CLogger log = CLogger.getCLogger(Calculator.class);
@@ -562,35 +563,37 @@ public final class Calculator extends CDialog
 	 */
 	//cyberjar
 	private void evaluateAll() {
-		try {
+		//try {
 			//System.out.println("EVAL: " + m_display);
+			
 			while (m_display.indexOf('(') != -1) {
-				processFirstBracket();
-				//System.out.println("After Replace: " + m_display);
+				try {
+					processFirstBracket();
+				} catch (Exception e) {
+					System.out.println("ERROR: " + e.getMessage());
+				}
+				
 			}
+			
+				prioritizeOperands();
+			
+			
 			if (isThereOperand() != -1) {
 				while(isThereOperand() != 0) {
-					/*if (isThereOperand() + 1 < m_display.length() ) {
-						if (m_display.charAt(isThereOperand() + 1) == '(') {
-							//replaceBracket();
-							System.out.println("After Replace: " + m_display);
-						}
-					} else {*/
 						String belakang = m_display.substring(isThereOperand(), m_display.length());
 						m_display = m_format.format(evaluate());
 						if (belakang.charAt(0) == ')') {
 							belakang = belakang.substring(1, belakang.length());
 						}
 						m_display += belakang;
-					//}
 				}
 				m_display = m_format.format(evaluate());
 			}
-		} catch (Exception e) {
+		/*} catch (Exception e) {
 			m_display = "MATH ERROR";
 			System.out.println(e.getMessage());
 			System.out.println(e.getCause());
-		}
+		}*/
 	}
 	
 	private int isThereOperand() {
@@ -615,6 +618,70 @@ public final class Calculator extends CDialog
 	
 	
 	//BlackWidow
+	private void prioritizeOperands() {
+		System.out.println("Prioritizing operands");
+		String po = prioritizedOperands;
+		for (int i = 0; i < po.length(); ++i) {
+			System.out.println("> Prioritizing " + po.charAt(i));
+			prioritizeOperand(po.charAt(i));
+		}
+		System.out.println("Done Prioritizing operands");
+	}
+	private void prioritizeOperand(char operand) {
+		int io = m_display.indexOf(operand);
+		while (io != -1) {
+			int noi = nextOperandIndex(io);
+			int poi = prevOperandIndex(io);
+			int begincut = poi+1;
+			int endcut = noi+1;
+			String depan = "";
+			if (poi != -1) {
+				depan = m_display.substring(0,poi+1);
+			} else {
+				begincut = 0;
+			}
+			
+			String belakang = "";
+			if (noi != -1) {
+				belakang = m_display.substring(noi, m_display.length());
+			} else {
+				endcut = m_display.length();
+			}
+			
+			m_display = m_display.substring(begincut, endcut);
+			m_display = m_format.format(evaluate());
+			System.out.println(">> DEPAN: " + depan);
+			System.out.println(">> BELAKANG: " + belakang);
+			System.out.println(">> m_display: " + m_display);
+			System.out.println("NEXT");
+			m_display = depan + m_display + belakang;
+			io = m_display.indexOf(operand);
+		}
+	}
+	private boolean isOperand(char c) {
+		for (int i = 0; i < OPERANDS.length(); ++i) {
+			if (OPERANDS.charAt(i) == c) {
+				return true;
+			}
+		}
+		return false;
+	}
+	private int nextOperandIndex(int from) {
+		for (int i = from + 1; i < m_display.length(); ++i) {
+			if (isOperand(m_display.charAt(i))) {
+				return i;
+			}
+		}
+		return -1;
+	}
+	private int prevOperandIndex(int from) {
+		for (int i = from - 1; i >= 0; --i) {
+			if (isOperand(m_display.charAt(i))) {
+				return i;
+			}
+		}
+		return -1;
+	}
 	private String processFirstBracket() throws Exception {
 		if (m_display.indexOf('(') != -1) {
 			String depan, belakang, newValue;
@@ -640,33 +707,6 @@ public final class Calculator extends CDialog
 			return m_display;
 		}
 	}
-
-	/*private int isThereOperand(String s) {
-		int count = 0;
-		for (int i=0; i<s.length(); i++) {
-			if(s.charAt(i) == '+' || s.charAt(i) == '-'
-			|| s.charAt(i) == '*' || s.charAt(i) == '/'
-			|| s.charAt(i) == '%' || s.charAt(i) == ')') {
-				count++;
-				if(count==2) {
-					return i;
-				}
-			}
-		}
-		if(count == 1) {
-			return 0;
-		} else {
-			return -1;
-		}
-	}
-	private void replaceSubstr(String s, String substr, int start, int end) {
-		//try {
-			StringBuffer buf = new StringBuffer(s);
-			System.out.println("Start: " + start + " | End: " + end);
-			buf.replace(start, end, substr);
-			s = buf.toString();
-			System.out.println("Hasil replace: " + s);
-	}*/
 	private int searchClosingBracketPos() {
 		int cnt = 0;
 		for (int i = 0; i < m_display.length(); ++i) {
@@ -685,48 +725,6 @@ public final class Calculator extends CDialog
 		//System.out.println("No CLosing Bracket, returning -1");
 		return -1;
 	}
-	/*
-	private String evaluateBracket(String s) {
-		//try {
-			System.out.println("EVALUATING BRACKET: " + s);
-			if (isThereOperand(s) != -1) {
-				while(isThereOperand(s) != 0) {
-					if (isThereOperand(s) + 1 < s.length() ) {
-						if (s.charAt(isThereOperand(s) + 1) == '(') {
-							replaceBracket();
-						}
-					} else {
-						String belakang = s.substring(isThereOperand(s), s.length());
-						System.out.println("Before Calculate " + s);
-						m_display = m_format.format(evaluate());
-						System.out.println("After Calculate " + m_display);
-						if (belakang.charAt(0) == ')') {
-							return m_display;
-						} else {
-							m_display += belakang;
-						}
-					}
-				}
-				m_display = m_format.format(evaluate());
-				if (m_display.charAt(m_display.length() - 1) == ')') {
-					return m_display;
-				} else {
-					return "ERROR: no closing bracket | " + m_display.charAt(m_display.length() - 1);
-				}
-			}
-			return "ERROR: no closing bracket, operand = -1";
-	}
-	private void replaceBracket() {
-		//try {
-			int openBracketPos = m_display.indexOf('(');
-			String substr = m_display.substring(openBracketPos+1, m_display.length());
-			System.out.println("REPLACING: " + substr);
-			String newValue = evaluateBracket(substr);
-			System.out.println("NEW VALUE: " + newValue);
-			int closingBracketPos = searchClosingBracketPos(m_display, openBracketPos);
-			replaceSubstr(m_display, newValue, openBracketPos, closingBracketPos);
-			System.out.println("NEW STRING: " + m_display);
-	}*/
 	/**
 	 *	Display or don't display Currency
 	 */
