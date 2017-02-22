@@ -563,9 +563,8 @@ public final class Calculator extends CDialog
 	 */
 	//cyberjar
 	private void evaluateAll() {
-		//try {
-			//System.out.println("EVAL: " + m_display);
-			
+		try {
+			//Handle all brackets
 			while (m_display.indexOf('(') != -1) {
 				try {
 					processFirstBracket();
@@ -575,9 +574,10 @@ public final class Calculator extends CDialog
 				
 			}
 			
-				prioritizeOperands();
+			//Prioritize all prioritized operands (* and /)
+			prioritizeOperands();
 			
-			
+			//Main Evaluate
 			if (isThereOperand() != -1) {
 				while(isThereOperand() != 0) {
 						String belakang = m_display.substring(isThereOperand(), m_display.length());
@@ -589,11 +589,11 @@ public final class Calculator extends CDialog
 				}
 				m_display = m_format.format(evaluate());
 			}
-		/*} catch (Exception e) {
+		} catch (Exception e) {
 			m_display = "MATH ERROR";
 			System.out.println(e.getMessage());
 			System.out.println(e.getCause());
-		}*/
+		}
 	}
 	
 	private int isThereOperand() {
