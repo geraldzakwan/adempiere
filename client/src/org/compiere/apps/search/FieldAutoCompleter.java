@@ -372,7 +372,7 @@ public abstract class FieldAutoCompleter implements MouseListener
 	protected boolean updateListData()
 	{
 		final String search = textBox.getText();
-		Object userObject = getUserOject();
+		Object userObject = getUserObject();
 		if (userObject != null && !isMatching(userObject, search))
 		{
 			setUserObject(null);
@@ -427,7 +427,7 @@ public abstract class FieldAutoCompleter implements MouseListener
 
 		// If the list has only one item, but that item is not equals with
 		// return false to not show any popup
-		userObject = getUserOject();
+		userObject = getUserObject();
 		if (!truncated && list.size() == 1 && userObject != null
 				&& list.get(0).equals(userObject))
 		{
@@ -463,7 +463,7 @@ public abstract class FieldAutoCompleter implements MouseListener
 		textBox.setToolTipText(userObject == null ? "" : userObject.toString());
 	}
 
-	public Object getUserOject()
+	public Object getUserObject()
 	{
 		return m_userObject;
 	}
