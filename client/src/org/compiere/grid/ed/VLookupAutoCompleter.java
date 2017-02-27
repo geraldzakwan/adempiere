@@ -139,13 +139,11 @@ public class VLookupAutoCompleter extends FieldAutoCompleter
 		}
 
 		String searchSQL = search;
-		if (!searchSQL.startsWith("%"))
-		{
+		if (!searchSQL.startsWith("%")) {
 			searchSQL = "%" + searchSQL;
 		}
-		if (!searchSQL.endsWith("%"))
-		{
-			searchSQL += "%";
+		if (!searchSQL.endsWith("%")) {
+			searchSQL = searchSQL + "%";
 		}
 
 		StringBuffer sql_select = new StringBuffer();
