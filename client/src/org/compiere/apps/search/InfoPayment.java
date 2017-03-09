@@ -406,7 +406,7 @@ public class InfoPayment extends Info
 			pstmt.setInt(index++, fieldID);
 		//
 		if (isValidSQLText(fDocumentNo))
-			pstmt.setString(index++, getSQLText(fDocumentNo));
+			pstmt.setString(index++, "%" + getSQLText(fDocumentNo));
 		//
 		if (fBPartner_ID.getValue() != null)
 		{

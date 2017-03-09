@@ -460,9 +460,9 @@ public class InfoInvoice extends Info
 		if (!(fieldID == 0))
 			pstmt.setInt(index++, fieldID);
 		if (isValidSQLText(fDocumentNo))
-			pstmt.setString(index++, getSQLText(fDocumentNo));
+			pstmt.setString(index++, "%" + getSQLText(fDocumentNo));
 		if (isValidSQLText(fDescription))
-			pstmt.setString(index++, getSQLText(fDescription));
+			pstmt.setString(index++, "%" + getSQLText(fDescription));
 		//
 		if (fBPartner_ID.getValue() != null)
 		{

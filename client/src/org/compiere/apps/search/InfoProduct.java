@@ -1105,16 +1105,16 @@ public class InfoProduct extends Info implements ActionListener, ChangeListener
 		}
 		//  => Value
 		if (isValidSQLText(fieldValue))
-			pstmt.setString(index++, getSQLText(fieldValue));
+			pstmt.setString(index++, "%" + getSQLText(fieldValue));
 		//  => Name
 		if (isValidSQLText(fieldName))
-			pstmt.setString(index++, getSQLText(fieldName));
+			pstmt.setString(index++, "%" + getSQLText(fieldName));
 		//  => UPC
 		if (isValidSQLText(fieldUPC))
-			pstmt.setString(index++, getSQLText(fieldUPC));
+			pstmt.setString(index++, "%" + getSQLText(fieldUPC));
 		//  => SKU
 		if (isValidSQLText(fieldSKU))
-			pstmt.setString(index++, getSQLText(fieldSKU));
+			pstmt.setString(index++, "%" + getSQLText(fieldSKU));
 		//  => Vendor
 		if (fVendor_ID.getValue() != null)
 		{

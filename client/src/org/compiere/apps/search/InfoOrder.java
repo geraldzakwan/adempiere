@@ -437,11 +437,11 @@ public class InfoOrder extends Info
 		if (!(fieldID == 0))
 			pstmt.setInt(index++, fieldID);
 		if (isValidSQLText(fDocumentNo))
-			pstmt.setString(index++, getSQLText(fDocumentNo));
+			pstmt.setString(index++, "%" + getSQLText(fDocumentNo));
 		if (isValidSQLText(fDescription))
-			pstmt.setString(index++, getSQLText(fDescription));
+			pstmt.setString(index++, "%" + getSQLText(fDescription));
 		if (isValidSQLText(fPOReference))
-			pstmt.setString(index++, getSQLText(fPOReference));
+			pstmt.setString(index++, "%" + getSQLText(fPOReference));
 		//
 		if (fBPartner_ID.getValue() != null)
 		{
